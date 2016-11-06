@@ -50,6 +50,7 @@ evaluates to the access of
 
   https://api.trello.com/1/lists/53186e8391ef8671265eba9f/cards?filter=open&key=xxx&token=yyy
 EOT
+
   def get_raw(url_fragment)
     process_global_options options
     require_trello_credentials
@@ -97,13 +98,12 @@ EOT
     cards = board.cards
 
     if @@settings.raw
-      cards_as_json = []
-      cards.each do |card|
-        cards_as_json.push(card.as_json)
-      end
-      puts "["
-      puts cards_as_json.join(",")
-      puts "]"
+binding.pry
+      cards_as_json = cards.map(&:card).as_json # or cards.as_json ?
+#     cards_as_json = cards.map { |card| card.as_json }
+#     puts "["
+#     puts cards_as_json.join(",")
+#     puts "]"
     else
       cards.each do |card|
         puts card.name
@@ -202,8 +202,7 @@ EOT
     process_global_options options
     require_trello_credentials
 
-    b = Backup.new @@settings
-    b.backup(board_id(options["board-id"]))
+    Backup.new(@@settings).backup(board_id(options["board-id"]))
   end
 
   desc "list-backups", "List all backups"
@@ -218,8 +217,7 @@ EOT
   option "board-id", :desc => "Id of Trello board", :required => true
   option "show-descriptions", :desc => "Show descriptions of cards", :required => false, :type => :boolean
   def show_backup
-    b = Backup.new @@settings
-    b.show(board_id(options["board-id"]), options)
+    Backup.new(@@settings).show(board_id(options["board-id"]), options)
   end
 
   desc "organization", "Show organization info"
@@ -228,12 +226,10 @@ EOT
     process_global_options options
     require_trello_credentials
 
-    trello = TrelloWrapper.new(@@settings)
+    organization = TrelloWrapper.new(@@settings).organization(options["org-name"])
 
-    o = trello.organization(options["org-name"])
-
-    puts "Display Name: #{o.display_name}"
-    puts "Home page: #{o.url}"
+    puts "Display Name: #{organization.display_name}"
+    puts "Home page: #{organization.url}"
   end
 
   desc "get-description", "Reads description"
@@ -253,8 +249,7 @@ EOT
     process_global_options options
     require_trello_credentials
 
-    trello = TrelloWrapper.new(@@settings)
-    trello.set_description(options["card-id"], STDIN.read)
+    TrelloWrapper.new(@@settings).set_description(options["card-id"], STDIN.read)
   end
 
   desc "organization-members", "Show organization members"
@@ -265,8 +260,8 @@ EOT
 
     trello = TrelloWrapper.new(@@settings)
 
-    members = trello.organization(options["org-name"]).members
-    members.sort! { |a,b| a.username <=> b.username }
+    members = trello.organization(options["org-name"]).
+                sort! { |a,b| a.username <=> b.username }
 
     members.each do |member|
       puts "#{member.username} (#{member.full_name})"
@@ -279,8 +274,7 @@ EOT
     process_global_options(options)
     require_trello_credentials
 
-    trello = TrelloWrapper.new(@@settings)
-    trello.add_attachment(options["card-id"], filename)
+    TrelloWrapper.new(@@settings).add_attachment(options["card-id"], filename)
   end
 
   desc "make-cover <filename>", "Make existing picture the cover"
@@ -289,8 +283,7 @@ EOT
     process_global_options(options)
     require_trello_credentials
 
-    trello = TrelloWrapper.new(@@settings)
-    trello.make_cover(options["card-id"], filename)
+    TrelloWrapper.new(@@settings).make_cover(options["card-id"], filename)
   end
 
   desc "set-priorities", "Set priority text into card titles"

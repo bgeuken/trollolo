@@ -66,7 +66,7 @@ class ScrumBoard
 
 
   def extra_cards
-    (done_column.extra_cards + accepted_column.extra_cards + open_columns.map(&:extra_cards)).flatten(1)
+    (done_column.extra_cards + accepted_column.extra_cards + open_columns.map(&:extra_cards)).flatten(1) # ?
   end
 
   def extra_done_cards

@@ -2,6 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem "json"
+
 group :test do
   gem 'codeclimate-test-reporter'
   gem 'rspec', '~> 3.5'
